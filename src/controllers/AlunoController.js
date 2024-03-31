@@ -1,11 +1,18 @@
 import Aluno from "../models/Aluno"
+import Foto from "../models/Foto";
 
 class AlunoController {
   async index(req, res){
     try{
       const alunos = await Aluno.findAll({
-        attributes: ['id', 'nome', 'sobrenome', 'email', 'peso', 'altura']
+        attributes: ['id', 'nome', 'sobrenome', 'email', 'peso', 'altura'],
+        order: [['id', 'DESC'], [Foto, 'id', 'DESC']],
+        include: {
+          model: Foto,
+          attributes: ['url', 'filename', 'originalname']
+        },
       });
+
       res.json(alunos)
     }catch(e){
       // Programa quebrou
@@ -22,15 +29,21 @@ class AlunoController {
         })
       }
 
-      const aluno = await Aluno.findByPk(ID)
+      const aluno = await Aluno.findByPk(ID, {
+        attributes: ['id', 'nome', 'sobrenome', 'email', 'peso', 'altura'],
+        order: [['id', 'DESC'], [Foto, 'id', 'DESC']],
+        include: {
+          model: Foto,
+          attributes: ['url', 'filename', 'originalname']
+        },
+      })
       if(!aluno){
         return res.status(400).json({
           errors: ['Aluno inválido.']
         })
       }
 
-      const { id, nome, sobrenome, email, peso, altura } = aluno
-      return res.status(200).json({ id, nome, sobrenome, email, peso, altura })
+      return res.status(200).json(aluno)
     }catch(e){
       return res.status(400).json({
         errors: e.errors.map((err) => err.message)
